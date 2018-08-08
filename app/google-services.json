@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "1065832757365",
+    "firebase_url": "https://taxi-945f2.firebaseio.com",
+    "project_id": "taxi-945f2",
+    "storage_bucket": "taxi-945f2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:1065832757365:android:99d8ba8c7ed82dbe",
+        "android_client_info": {
+          "package_name": "com.dhanaruban.namataxi"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "1065832757365-udvd4dqv9k049hhsq7vjj46pgf7ruepk.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.dhanaruban.namataxi",
+            "certificate_hash": "ef62b3a5ee36e22e6035d83e5d6817eee64a79ee"
+          }
+        },
+        {
+          "client_id": "1065832757365-90iuigoearc0f5h05c098se89te3c045.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBcIV9g2HWZ18R6OiqgQIwrPy87AFSULgg"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "1065832757365-90iuigoearc0f5h05c098se89te3c045.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
