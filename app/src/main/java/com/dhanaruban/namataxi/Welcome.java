@@ -25,6 +25,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import com.dhanaruban.namataxi.Common.Common;
+import com.dhanaruban.namataxi.Model.Token;
 import com.dhanaruban.namataxi.Remote.IGoogleAPI;
 import com.firebase.geofire.GeoFire;
 import com.firebase.geofire.GeoLocation;
@@ -60,7 +61,9 @@ import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+//import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationListener;
+import com.google.firebase.iid.FirebaseInstanceId;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -88,7 +91,7 @@ public class Welcome extends FragmentActivity implements OnMapReadyCallback,
 
     private LocationRequest mLocationRequest;
     private GoogleApiClient mGoogleApiClient;
-    private Location mLastLocation;
+
     private static int UPDATE_INTERVAL = 5000;
     private static int FATEST_INTERVAL = 3000;
     private static int DISPLACEMENT = 10;
@@ -209,7 +212,7 @@ places.setOnPlaceSelectedListener(new PlaceSelectionListener() {
             getDirection();
         }
         else {
-            Toast.makeText(Welcome.this,"Please change your statusto online",Toast.LENGTH_SHORT).show();
+            Toast.makeText(Welcome.this,"Please change your status to online",Toast.LENGTH_SHORT).show();
         }
 
     }
@@ -221,15 +224,27 @@ Toast.makeText(Welcome.this,""+status.toString(),Toast.LENGTH_SHORT).show();
 });
 
 
-        drivers = FirebaseDatabase.getInstance().getReference("Drivers");
+        drivers = FirebaseDatabase.getInstance().getReference(Common.driver_tb1);
         geoFire = new GeoFire(drivers);
         setUpLocation();
 
         mService = Common.getGoogleAPI();
+
+        updateFirebaseToken();
+    }
+
+    private void updateFirebaseToken() {
+        FirebaseDatabase db = FirebaseDatabase.getInstance();
+        DatabaseReference tokens = db.getReference(Common.token_tb1);
+
+        Token token = new Token(FirebaseInstanceId.getInstance().getToken());
+        tokens.child(FirebaseAuth.getInstance().getCurrentUser().getUid())
+                    .setValue(token);
+
     }
 
     private void getDirection() {
-        currentPosition=new LatLng(mLastLocation.getLatitude(),mLastLocation.getLongitude());
+        currentPosition=new LatLng(Common.mLastLocation.getLatitude(),Common.mLastLocation.getLongitude());
         String requestApi = null;
         try{
            requestApi = "https://maps.googleapis.com/maps/api/directions/json?"+
@@ -246,18 +261,23 @@ Toast.makeText(Welcome.this,""+status.toString(),Toast.LENGTH_SHORT).show();
                            try {
                                JSONObject jsonObject = new JSONObject(response.body().toString());
                                JSONArray jsonArray = jsonObject.getJSONArray("routes");
-                               for(int i =0;i<jsonArray.length();i++){
-                                   JSONObject route = jsonArray.getJSONObject(i);
-                                   JSONObject poly = route.getJSONObject("overview_polyline");
-                                   String polyline = poly.getString("points");
-                                   polyLineList= decodePoly(polyline);
+                               JSONArray routeArray = jsonObject.getJSONArray("routes");
+                               JSONObject routes = routeArray.getJSONObject(0);
+                               JSONObject overviewPolylines = routes.getJSONObject("overview_polyline");
+                               String encodedString = overviewPolylines.getString("points");
+                               polyLineList = decodePoly(encodedString);
+                               if (!polyLineList.isEmpty()) {
+                                   // Adjusting Bounds
+                                   LatLngBounds.Builder builder = new LatLngBounds.Builder();
+                                   for (LatLng latLng:polyLineList) {
+                                       builder = builder.include(latLng);
+                                   }
+                                   LatLngBounds bounds = builder.build();
+                                   CameraUpdate mCameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds, 2);
+                                   mMap.animateCamera(mCameraUpdate);
                                }
-                               LatLngBounds.Builder builder =new LatLngBounds.Builder();
-                               for (LatLng latLng:polyLineList)
-                                   builder.include(latLng);
-                               LatLngBounds bounds = builder.build();
-                               CameraUpdate mCameraUpdate = CameraUpdateFactory.newLatLngBounds(bounds,2);
-                               mMap.animateCamera(mCameraUpdate);
+
+
 
                                polylineOptions = new PolylineOptions();
                                polylineOptions.color(Color.GRAY);
@@ -439,11 +459,11 @@ Toast.makeText(Welcome.this,""+status.toString(),Toast.LENGTH_SHORT).show();
                 ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             return;
         }
-        mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
-        if (mLastLocation != null) {
+        Common.mLastLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+        if (Common.mLastLocation != null) {
             if (location_switch.isChecked()) {
-                final double latitude = mLastLocation.getLatitude();
-                final double longitude = mLastLocation.getLongitude();
+                final double latitude = Common.mLastLocation .getLatitude();
+                final double longitude = Common.mLastLocation .getLongitude();
                 geoFire.setLocation(FirebaseAuth.getInstance().getCurrentUser().getUid(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
                     @Override
                     public void onComplete(String key, DatabaseError error) {
@@ -511,7 +531,7 @@ Toast.makeText(Welcome.this,""+status.toString(),Toast.LENGTH_SHORT).show();
 
     @Override
     public void onLocationChanged(Location location) {
-        mLastLocation = location;
+        Common.mLastLocation  = location;
         displayLocation();
 
     }

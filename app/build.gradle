@@ -5,8 +5,8 @@ android {
     compileSdkVersion 26
     defaultConfig {
         applicationId "com.dhanaruban.namataxi"
-        minSdkVersion 25
-        targetSdkVersion 26
+        minSdkVersion 23
+        targetSdkVersion 25
         versionCode 1
         versionName "1.0"
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
@@ -36,9 +36,11 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 
     //noinspection GradleCompatible
-
+    implementation 'de.hdodenhof:circleimageview:2.2.0'
     implementation 'com.squareup.retrofit2:retrofit:2.3.0'
     implementation 'com.squareup.retrofit2:converter-scalars:2.3.0'
+    implementation 'com.squareup.retrofit2:converter-gson:2.3.0'
+
     implementation 'com.github.glomadrian:MaterialAnimatedSwitch:1.1@aar'
     implementation 'com.firebase:geofire-android:2.1.2'
     implementation 'com.github.d-max:spots-dialog:0.7@aar'
@@ -50,10 +52,11 @@ dependencies {
     implementation 'com.google.firebase:firebase-core:16.0.1'
     //noinspection GradleCompatible
     implementation 'com.google.firebase:firebase-database:16.0.1'
+    implementation 'com.google.firebase:firebase-messaging:17.3.0'
     implementation 'com.google.firebase:firebase-auth:16.0.2'
     implementation 'com.google.android.gms:play-services-maps:15.0.1'
     implementation 'com.google.android.gms:play-services-location:15.0.1'
-    implementation 'com.google.android.gms:play-services-places:9.4.0'
+    implementation 'com.google.android.gms:play-services-places:15.0.1'
 
     //noinspection GradleCompatible
 

@@ -14,6 +14,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 
+import com.dhanaruban.namataxi.Common.Common;
 import com.dhanaruban.namataxi.Model.User;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
@@ -37,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
     RelativeLayout rootLayout;
     @Override
     protected void attachBaseContext(Context newBase) {
+
         super.attachBaseContext(CalligraphyContextWrapper.wrap(newBase));
     }
 
@@ -44,13 +46,14 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         CalligraphyConfig.initDefault(new CalligraphyConfig.Builder()
-                                          .setDefaultFontPath("fonts/Arkkhip_font.ttf")
-                                           .setFontAttrId(R.attr.fontPath)
-                                            .build());
+                .setDefaultFontPath("fonts/Arkkhip_font.ttf")
+                .setFontAttrId(R.attr.fontPath)
+                .build());
+
         setContentView(R.layout.activity_main);
         auth = FirebaseAuth.getInstance();
         db = FirebaseDatabase.getInstance();
-        users= db.getReference("Users");
+        users= db.getReference(Common.user_driver_tb1);
         btnregister = (Button)findViewById(R.id.btnregister);
         btnsignin = (Button)findViewById(R.id.btnsignin);
         rootLayout = (RelativeLayout)findViewById(R.id.rootLayout);
