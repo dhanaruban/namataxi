@@ -5,6 +5,7 @@ import android.Manifest;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.graphics.Interpolator;
@@ -53,6 +54,7 @@ import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.JointType;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
+import com.google.android.gms.maps.model.MapStyleOptions;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.Polyline;
@@ -513,8 +515,8 @@ Toast.makeText(Welcome.this,""+status.toString(),Toast.LENGTH_SHORT).show();
                         if (mCurrent != null)
                             mCurrent.remove();
                             mCurrent = mMap.addMarker(new MarkerOptions()
-
                                     .position(new LatLng(latitude, longitude))
+                                    .icon(BitmapDescriptorFactory.fromResource(R.drawable.marker))
                                     .title("Your Location"));
 
                             mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(new LatLng(latitude, longitude), 15.0f));
@@ -562,6 +564,19 @@ Toast.makeText(Welcome.this,""+status.toString(),Toast.LENGTH_SHORT).show();
 
     @Override
     public void onMapReady(GoogleMap googleMap) {
+        try{
+            boolean isSuccess = googleMap.setMapStyle(
+                    MapStyleOptions.loadRawResourceStyle(this,R.raw.map_style)
+            );
+            if(!isSuccess)
+                Log.e("ERROR","Map style load failed !!!");
+        }
+        catch (Resources.NotFoundException ex)
+        {
+            ex.printStackTrace();
+        }
+
+
         mMap = googleMap;
         mMap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
         mMap.setTrafficEnabled(false);
