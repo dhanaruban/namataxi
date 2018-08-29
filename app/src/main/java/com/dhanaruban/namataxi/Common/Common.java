@@ -2,6 +2,7 @@ package com.dhanaruban.namataxi.Common;
 
 import android.location.Location;
 
+import com.dhanaruban.namataxi.Model.User;
 import com.dhanaruban.namataxi.Remote.FCMClient;
 import com.dhanaruban.namataxi.Remote.IFCMService;
 import com.dhanaruban.namataxi.Remote.IGoogleAPI;
@@ -16,6 +17,8 @@ public class Common {
     public  static final String user_rider_tb1 = "RidersInformation";
     public  static final String pickup_request_tb1 = "PickupRequest";
     public  static final String token_tb1 = "Tokens";
+
+    public static User currentUser;
     public static Location mLastLocation = null;
 
 

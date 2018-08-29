@@ -38,6 +38,7 @@ import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.Status;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.AutocompleteFilter;
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.ui.PlaceAutocompleteFragment;
 import com.google.android.gms.location.places.ui.PlaceSelectionListener;
@@ -58,12 +59,15 @@ import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.SquareCap;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 //import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationListener;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.maps.android.SphericalUtil;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -112,10 +116,13 @@ public class Welcome extends FragmentActivity implements OnMapReadyCallback,
     private int index,next;
     //private Button btnGo;
     private PlaceAutocompleteFragment places;
+    AutocompleteFilter typeFilter;
     private String destination;
     private PolylineOptions polylineOptions,blackPolylineOptions;
     private Polyline blackPolyline,greyPolyline;
     private IGoogleAPI mService;
+
+    DatabaseReference onlineRef, currentUserRef;
     Runnable drawPathRunnable = new Runnable() {
         @Override
         public void run() {
@@ -177,16 +184,33 @@ public class Welcome extends FragmentActivity implements OnMapReadyCallback,
                 .findFragmentById(R.id.map);
         mapFragment.getMapAsync(this);
 
+        onlineRef = FirebaseDatabase.getInstance().getReference().child(".info/connected");
+        currentUserRef = FirebaseDatabase.getInstance().getReference(Common.driver_tb1)
+                .child(FirebaseAuth.getInstance().getCurrentUser().getUid());
+        onlineRef.addValueEventListener(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                currentUserRef.onDisconnect().removeValue();
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
         location_switch = (MaterialAnimatedSwitch) findViewById(R.id.location_switch);
         location_switch.setOnCheckedChangeListener(new MaterialAnimatedSwitch.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(boolean isOnline) {
                 if (isOnline) {
+                    FirebaseDatabase.getInstance().goOnline();
                     startLocationUpdates();
                     displayLocation();
                     Snackbar.make(mapFragment.getView(), "You are online", Snackbar.LENGTH_SHORT)
                             .show();
                 } else {
+                    FirebaseDatabase.getInstance().goOffline();
                     stopLocationUpdates();
                     mCurrent.remove();
                     mMap.clear();
@@ -202,6 +226,11 @@ public class Welcome extends FragmentActivity implements OnMapReadyCallback,
 polyLineList = new ArrayList<>();
 //btnGo = (Button) findViewById(R.id.btnGo);
 //edtPlace = (EditText)findViewById(R.id.edtPlace);
+    typeFilter = new AutocompleteFilter.Builder()
+            .setTypeFilter(AutocompleteFilter.TYPE_FILTER_ADDRESS)
+            .setTypeFilter(3)
+            .build();
+
 places = (PlaceAutocompleteFragment)getFragmentManager().findFragmentById(R.id.place_autocomplete_fragment);
 places.setOnPlaceSelectedListener(new PlaceSelectionListener() {
     @Override
@@ -464,6 +493,20 @@ Toast.makeText(Welcome.this,""+status.toString(),Toast.LENGTH_SHORT).show();
             if (location_switch.isChecked()) {
                 final double latitude = Common.mLastLocation .getLatitude();
                 final double longitude = Common.mLastLocation .getLongitude();
+
+                LatLng center = new LatLng(latitude,longitude);
+                LatLng northSide = SphericalUtil.computeOffset(center,100000,0);
+                LatLng southSide = SphericalUtil.computeOffset(center,100000,100);
+
+                LatLngBounds bounds = LatLngBounds.builder()
+                        .include(northSide)
+                        .include(southSide)
+                        .build();
+                places.setBoundsBias(bounds);
+                places.setFilter(typeFilter);
+
+
+
                 geoFire.setLocation(FirebaseAuth.getInstance().getCurrentUser().getUid(), new GeoLocation(latitude, longitude), new GeoFire.CompletionListener() {
                     @Override
                     public void onComplete(String key, DatabaseError error) {

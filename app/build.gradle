@@ -9,6 +9,7 @@ android {
         targetSdkVersion 25
         versionCode 1
         versionName "1.0"
+        multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
     }
     buildTypes {
@@ -26,6 +27,7 @@ configurations.all {
     resolutionStrategy.force 'com.android.support:support-annotations:26.1.0'
 }
 dependencies {
+    implementation 'com.google.maps.android:android-maps-utils:0.5+'
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     //noinspection GradleCompatible
     implementation 'com.android.support:appcompat-v7:26.0.0-beta1'

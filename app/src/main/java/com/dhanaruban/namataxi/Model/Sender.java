@@ -11,7 +11,7 @@ public class Sender {
         this.notification = notification;
     }
 
-    public Sender() {
+    public Sender(String token, com.dhanaruban.namataxi.Model.Notification notification) {
     }
 
     public String getTo() {

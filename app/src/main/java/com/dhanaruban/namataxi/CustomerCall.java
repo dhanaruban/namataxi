@@ -1,17 +1,25 @@
 package com.dhanaruban.namataxi;
 
 import android.animation.ValueAnimator;
+import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.text.TextUtils;
 import android.util.Log;
+import android.view.View;
 import android.view.animation.LinearInterpolator;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.dhanaruban.namataxi.Common.Common;
+import com.dhanaruban.namataxi.Model.FCMResponse;
+import com.dhanaruban.namataxi.Model.Notification;
+import com.dhanaruban.namataxi.Model.Sender;
+import com.dhanaruban.namataxi.Model.Token;
 import com.dhanaruban.namataxi.Remote.IFCMService;
 import com.dhanaruban.namataxi.Remote.IGoogleAPI;
 import com.google.android.gms.maps.CameraUpdate;
@@ -37,18 +45,51 @@ import retrofit2.Response;
 public class CustomerCall extends AppCompatActivity {
 
     TextView txtTime,txtAddress,txtDistance;
+    Button btnCancel,btnAccept;
     MediaPlayer mediaPlayer;
     IGoogleAPI mService;
+    IFCMService mFCMService;
+
+    String customerId;
+
+    double lat,lng;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_customer_call);
         mService = Common.getGoogleAPI();
+        mFCMService = Common.getFCMService();
 
         txtAddress = (TextView)findViewById(R.id.textAddress);
         txtTime = (TextView)findViewById(R.id.textTime);
         txtDistance = (TextView)findViewById(R.id.textDistance);
+
+        btnAccept = (Button)findViewById(R.id.btnAccept);
+        btnCancel = (Button)findViewById(R.id.btnDecline);
+
+        btnCancel.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(!TextUtils.isEmpty(customerId))
+                    cancelBooking(customerId);
+
+            }
+        });
+
+        btnAccept.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(CustomerCall.this,DriverTracking.class);
+                intent.putExtra("lat",lat);
+                intent.putExtra("lng",lng);
+                intent.putExtra("customerId",customerId);
+
+                startActivity(intent);
+                finish();
+            }
+        });
+
 
         mediaPlayer = mediaPlayer.create(this,R.raw.ringtone);
         mediaPlayer.setLooping(true);
@@ -56,13 +97,39 @@ public class CustomerCall extends AppCompatActivity {
 
         if(getIntent() != null)
         {
-            double lat = getIntent().getDoubleExtra("lat",-1.0);
-            double lng = getIntent().getDoubleExtra("lng",-1.0);
+             lat = getIntent().getDoubleExtra("lat",-1.0);
+             lng = getIntent().getDoubleExtra("lng",-1.0);
+            customerId = getIntent().getStringExtra("Customer");
 
             getDirection(lat,lng);
 
             }
     }
+
+    private void cancelBooking(String customerId) {
+        Token token = new Token(customerId);
+        Notification notification = new Notification("Cancel","Driver has cancelled your request");
+        Sender sender = new Sender(token.getToken(),notification);
+
+        mFCMService.sendMessage(sender)
+                .enqueue(new Callback<FCMResponse>() {
+                    @Override
+                    public void onResponse(Call<FCMResponse> call, Response<FCMResponse> response) {
+                        if(response.body().success == 1)
+                        {
+                            Toast.makeText(CustomerCall.this,"Cancelled",Toast.LENGTH_SHORT).show();
+                            finish();
+                        }
+
+                    }
+
+                    @Override
+                    public void onFailure(Call<FCMResponse> call, Throwable t) {
+
+                    }
+                });
+    }
+
     private void getDirection(double lat,double lng) {
 
         String requestApi = null;
